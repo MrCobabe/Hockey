@@ -26,8 +26,8 @@ public class HockeyPanel extends JPanel {
 	Connect connect;
 	double mouseSpeed;
 	double[] tom = { 350, 350 }; // actually the puck; Two0 Optimistic Moms
-	double puckDir = Math.PI * 7/8 ;// just me knot you
-	int puckSpeed =1;
+	double puckDir = Math.PI * 7 / 8;// just me knot you
+	int puckSpeed = 1;
 
 	public HockeyPanel(Connect connect) {// constructor!!!
 		this.connect = connect;
@@ -74,7 +74,7 @@ public class HockeyPanel extends JPanel {
 //			tom[1] = Integer.valueOf(tomSplit[1]); // do this
 				double xPoint = tom[0] + puckSize / 2 + puckSize / 2 * Math.cos(puckDir);
 				double yPoint = tom[1] + puckSize / 2 + puckSize / 2 * Math.sin(puckDir);
-				if (poly.contains(xPoint,yPoint)) {
+				if (poly.contains(xPoint, yPoint)) {
 				} else {
 					redirect(xPoint, yPoint);
 				}
@@ -94,12 +94,12 @@ public class HockeyPanel extends JPanel {
 			public void mouseMoved(MouseEvent e) {
 				// TODO Auto-generated method stub
 				if (checkZone(e.getX(), e.getY())) {
-					//todo
-					//locals a and b
+					// todo
+					// locals a and b
 					int a = e.getX();
 					int b = e.getY();
-					System.out.println("x difference: " + Math.abs(puckX - a));
-					System.out.println("y difference: " + Math.abs(puckY -b));
+					mouseSpeed = Math.sqrt((puckX - a) * (puckX - a) + (puckY - b) * (puckY - b));
+					System.out.println(mouseSpeed);
 					puckX = a;
 					puckY = b;
 					setCursor(c);
@@ -119,16 +119,16 @@ public class HockeyPanel extends JPanel {
 		for (int i = 0; i < sides; i++) {
 			int midX;
 			int midY;
-			
+
 //			System.out.println("tomLeadX: " + tomLeadX + " tomLeadY: " + tomLeadY);
 			if (i == sides - 1) {
 				midX = (shape.exes[i] + shape.exes[0]) / 2;
 				midY = (shape.wise[i] + shape.wise[0]) / 2;
-			
+
 			} else {
 				midX = (shape.exes[i] + shape.exes[i + 1]) / 2;
 				midY = (shape.wise[i] + shape.wise[i + 1]) / 2;
-				
+
 			}
 			g.setColor(new Color(255, 0, 0));
 			g.drawOval(midX - goalSize / 2, midY - goalSize / 2, goalSize, goalSize);
@@ -159,12 +159,12 @@ public class HockeyPanel extends JPanel {
 		}
 		// draw Tom
 		g.setColor(Color.black);
-		int a = (int) tom[0] - 350 + puckSize/2;
-		int b = (int) tom[1] - 350 + puckSize/2;
+		int a = (int) tom[0] - 350 + puckSize / 2;
+		int b = (int) tom[1] - 350 + puckSize / 2;
 		int[] ab = rotatePerson(a, b, 0);
 		g.setColor(new Color(200, 200, 0));
-		g.fillOval(ab[0] + 350 - puckSize /2, ab[1] + 350 - puckSize /2 , puckSize, puckSize);
-		//test
+		g.fillOval(ab[0] + 350 - puckSize / 2, ab[1] + 350 - puckSize / 2, puckSize, puckSize);
+		// test
 	}// ends paintComponent
 
 	public boolean checkZone(int x, int y) {
@@ -194,37 +194,63 @@ public class HockeyPanel extends JPanel {
 		return pos;
 	}
 
+	public void checkCollision() {
+		int[] center = { puckX + puckSize / 2, puckY + puckSize / 2 };
+		int[] puckCenter = { (int) (tom[0] + puckSize / 2), (int) (tom[1] + puckSize / 2) };
+		for (int a = 0; a < 360; a = a + 15) {
+			double rad = a * Math.PI / 180;
+			double[] checkPoint = { puckSize / 2 * Math.cos(rad) + center[0],
+					puckSize / 2 * Math.sin(rad) + center[1] };
+			double dx = checkPoint[0] - puckCenter[0];
+			double dy = checkPoint[1] - puckCenter[1];
+			double distance = Math.sqrt(dx * dx + dy * dy);
+			if(distance < puckSize / 2) {
+				System.out.println("Collision " + a);
+			}
+			
+		}
+	}
+
 	// just server
 	public void redirect(double pointX, double pointY) {
-		int x1 = 0; int x2 = 0; int y1 = 0; int y2 = 0;
-		for(int a = 0; a < shape.exes.length - 1; a++) {
+		int x1 = 0;
+		int x2 = 0;
+		int y1 = 0;
+		int y2 = 0;
+		for (int a = 0; a < shape.exes.length - 1; a++) {
 //			System.out.println("shape exes: " + shape.exes[a] + "," + shape.exes[a+1]);
 //			System.out.println("puck x: " + pointX);
-			if(shape.exes[a] < pointX+5 && pointX - 5 < shape.exes[a+1] || shape.exes[a] > pointX - 5 && pointX + 5 > shape.exes[a+1]) {
-				if(shape.wise[a] < pointY + 5 && pointY - 5 < shape.wise[a+1] ||shape.wise[a] > pointY + 5 && pointY + 5 > shape.wise[a+1]) {
-					x1 = shape.exes[a]; x2 = shape.exes[a+1];y1 = shape.wise[a]; y2 = shape.wise[a+1];  
+			if (shape.exes[a] < pointX + 5 && pointX - 5 < shape.exes[a + 1]
+					|| shape.exes[a] > pointX - 5 && pointX + 5 > shape.exes[a + 1]) {
+				if (shape.wise[a] < pointY + 5 && pointY - 5 < shape.wise[a + 1]
+						|| shape.wise[a] > pointY + 5 && pointY + 5 > shape.wise[a + 1]) {
+					x1 = shape.exes[a];
+					x2 = shape.exes[a + 1];
+					y1 = shape.wise[a];
+					y2 = shape.wise[a + 1];
 				}
 			}
 		}
-		if(x1 == 0 && y2 == 0) {
-			x1 = shape.exes[shape.exes.length-1]; x2 = shape.exes[0];
-			y1 = shape.wise[shape.wise.length-1]; y2 = shape.wise[0];
+		if (x1 == 0 && y2 == 0) {
+			x1 = shape.exes[shape.exes.length - 1];
+			x2 = shape.exes[0];
+			y1 = shape.wise[shape.wise.length - 1];
+			y2 = shape.wise[0];
 		}
 //		puckDir = Math.atan2(Math.sin(puckDir), Math.cos(puckDir));
-		int A = (int)(puckDir * 180 / Math.PI); // angle for triangle based on quadrant
+		int A = (int) (puckDir * 180 / Math.PI); // angle for triangle based on quadrant
 		int A2 = 0; // end angle to add twice for bounce
-		while(A < 0) {
+		while (A < 0) {
 			A = A + 360;
 		}
 		while (A > 360) {
 			A = A - 360;
 		}
 //		System.out.println(A + " PRINTING A");
-		
-		
+
 		System.out.println("exes: " + x1 + "," + x2);
 		System.out.println("wise: " + y1 + "," + y2);
-		if(x1-x2==0 || y1-y2==0) {
+		if (x1 - x2 == 0 || y1 - y2 == 0) {
 			if (x1 - x2 == 0) {
 				if (A > 0 && A < 90) {
 					A = A + 2 * (90 - A);
@@ -251,14 +277,14 @@ public class HockeyPanel extends JPanel {
 				puckDir = A * Math.PI / 180;
 				return;
 			}
-		}else{
+		} else {
 			double dx = x1 - x2;
 			double dy = y1 - y2;
 			double angle = Math.atan2(dy, dx);
 //			System.out.println("DY: " + dy + " DX: " + dx);
-			if(dy / dx > 0){
-				System.out.println("old A: " + A );
-				A = A - (int)(angle * 180 / Math.PI);
+			if (dy / dx > 0) {
+				System.out.println("old A: " + A);
+				A = A - (int) (angle * 180 / Math.PI);
 				System.out.println("A Rotated: " + A);
 				if (A > 0 && A < 90) {
 					A = A - (2 * A);
@@ -269,11 +295,11 @@ public class HockeyPanel extends JPanel {
 				} else if (A > 270) {
 					A = A + 2 * (360 - A);
 				}
-				A = A + (int)(angle * 180/Math.PI);
+				A = A + (int) (angle * 180 / Math.PI);
 				puckDir = A * Math.PI / 180;
 				return;
-			}else {
-				A = A - (int)(angle * 180 / Math.PI);
+			} else {
+				A = A - (int) (angle * 180 / Math.PI);
 				if (A > 0 && A < 90) {
 					A = A - (2 * A);
 				} else if (A > 90 && A < 180) {
@@ -283,7 +309,7 @@ public class HockeyPanel extends JPanel {
 				} else if (A > 270) {
 					A = A + 2 * (360 - A);
 				}
-				puckDir = (A+(int)(angle * 180/Math.PI)) * Math.PI / 180;
+				puckDir = (A + (int) (angle * 180 / Math.PI)) * Math.PI / 180;
 				return;
 			}
 		}
