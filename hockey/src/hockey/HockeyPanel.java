@@ -14,7 +14,7 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 public class HockeyPanel extends JPanel {
-	int sides = 9;// start position
+	int sides = 12;// start position
 	TableShape shape;
 	Polygon poly;
 	int sideLength;
@@ -24,10 +24,10 @@ public class HockeyPanel extends JPanel {
 	int puckY;// paddle locations
 	Cursor c;
 	Connect connect;
-	double mouseSpeed;// still need to do
+	double mouseSpeed;
 	double[] tom = { 350, 350 }; // actually the puck; Two0 Optimistic Moms
-	double puckDir = Math.PI * 3/2 ;// just me knot you
-	int puckSpeed = 1;
+	double puckDir = Math.PI * 7/8 ;// just me knot you
+	int puckSpeed =1;
 
 	public HockeyPanel(Connect connect) {// constructor!!!
 		this.connect = connect;
@@ -62,7 +62,7 @@ public class HockeyPanel extends JPanel {
 			}
 			connect.sendPosition(puckX, puckY);
 			// server only ↓
-			if (connect.numPlayers > 0) {
+			if (connect.numPlayers > 2) {
 				tom[0] = (Math.cos(puckDir) * puckSpeed + tom[0]);
 				tom[1] = (tom[1] + Math.sin(puckDir) * puckSpeed);
 			}
@@ -94,8 +94,14 @@ public class HockeyPanel extends JPanel {
 			public void mouseMoved(MouseEvent e) {
 				// TODO Auto-generated method stub
 				if (checkZone(e.getX(), e.getY())) {
-					puckX = e.getX();
-					puckY = e.getY();
+					//todo
+					//locals a and b
+					int a = e.getX();
+					int b = e.getY();
+					System.out.println("x difference: " + Math.abs(puckX - a));
+					System.out.println("y difference: " + Math.abs(puckY -b));
+					puckX = a;
+					puckY = b;
 					setCursor(c);
 				} else {
 					setCursor(new Cursor(1));
@@ -153,11 +159,12 @@ public class HockeyPanel extends JPanel {
 		}
 		// draw Tom
 		g.setColor(Color.black);
-		int a = (int) tom[0] - 350;
-		int b = (int) tom[1] - 350;
+		int a = (int) tom[0] - 350 + puckSize/2;
+		int b = (int) tom[1] - 350 + puckSize/2;
 		int[] ab = rotatePerson(a, b, 0);
 		g.setColor(new Color(200, 200, 0));
-		g.fillOval(ab[0] + 350, ab[1] + 350, puckSize, puckSize);
+		g.fillOval(ab[0] + 350 - puckSize /2, ab[1] + 350 - puckSize /2 , puckSize, puckSize);
+		//test
 	}// ends paintComponent
 
 	public boolean checkZone(int x, int y) {
@@ -191,8 +198,8 @@ public class HockeyPanel extends JPanel {
 	public void redirect(double pointX, double pointY) {
 		int x1 = 0; int x2 = 0; int y1 = 0; int y2 = 0;
 		for(int a = 0; a < shape.exes.length - 1; a++) {
-			System.out.println("shape exes: " + shape.exes[a] + "," + shape.exes[a+1]);
-			System.out.println("puck x: " + pointX);
+//			System.out.println("shape exes: " + shape.exes[a] + "," + shape.exes[a+1]);
+//			System.out.println("puck x: " + pointX);
 			if(shape.exes[a] < pointX+5 && pointX - 5 < shape.exes[a+1] || shape.exes[a] > pointX - 5 && pointX + 5 > shape.exes[a+1]) {
 				if(shape.wise[a] < pointY + 5 && pointY - 5 < shape.wise[a+1] ||shape.wise[a] > pointY + 5 && pointY + 5 > shape.wise[a+1]) {
 					x1 = shape.exes[a]; x2 = shape.exes[a+1];y1 = shape.wise[a]; y2 = shape.wise[a+1];  
@@ -212,69 +219,73 @@ public class HockeyPanel extends JPanel {
 		while (A > 360) {
 			A = A - 360;
 		}
-		System.out.println(A + " PRINTING A");
+//		System.out.println(A + " PRINTING A");
 		
 		
 		System.out.println("exes: " + x1 + "," + x2);
 		System.out.println("wise: " + y1 + "," + y2);
-		if (x1 - x2 == 0) {
-			if (A > 0 && A < 90) {
-				A = A + 2 * (90 - A);
-			} else if (A > 90 && A < 180) {
-				A = A - 2 * (A - 90);
-			} else if (A > 180 && A < 270) {
-				A = A + 2 * (90 - (A - 180));
-			}else if(A > 270) {
-				A = A - (2 * (A - 270));
+		if(x1-x2==0 || y1-y2==0) {
+			if (x1 - x2 == 0) {
+				if (A > 0 && A < 90) {
+					A = A + 2 * (90 - A);
+				} else if (A > 90 && A < 180) {
+					A = A - 2 * (A - 90);
+				} else if (A > 180 && A < 270) {
+					A = A + 2 * (90 - (A - 180));
+				} else if (A > 270) {
+					A = A - (2 * (A - 270));
+				}
+				puckDir = A * Math.PI / 180;
+				return;
 			}
-			puckDir = A * Math.PI / 180;
-			return;
-		}
-		if (y1 - y2 == 0) {
-			if (A > 0 && A < 90) {
-				A = A - (2 * A);
-			} else if (A > 90 && A < 180) {
-				A = A + 2*(180 - A);
-			}else if(A > 180 && A < 270) {
-				A = A - 2*(A - 180);
-			}else if(A > 270) {
-				A = A + 2*(360 - A);
+			if (y1 - y2 == 0) {
+				if (A > 0 && A < 90) {
+					A = A - (2 * A);
+				} else if (A > 90 && A < 180) {
+					A = A + 2 * (180 - A);
+				} else if (A > 180 && A < 270) {
+					A = A - 2 * (A - 180);
+				} else if (A > 270) {
+					A = A + 2 * (360 - A);
+				}
+				puckDir = A * Math.PI / 180;
+				return;
 			}
-			puckDir = A * Math.PI / 180;
-			return;
-		}
-		if(A > 0 && A < 90) {
-			double perpSlope = Math.atan2(-(y1-y2), (x1-x2));
-			System.out.println("perpSlope: " + perpSlope * 180 / Math.PI);
-			if(A > perpSlope * 180 / Math.PI) {
-				System.out.println("bounce down");
+		}else{
+			double dx = x1 - x2;
+			double dy = y1 - y2;
+			double angle = Math.atan2(dy, dx);
+//			System.out.println("DY: " + dy + " DX: " + dx);
+			if(dy / dx > 0){
+				System.out.println("old A: " + A );
+				A = A - (int)(angle * 180 / Math.PI);
+				System.out.println("A Rotated: " + A);
+				if (A > 0 && A < 90) {
+					A = A - (2 * A);
+				} else if (A > 90 && A < 180) {
+					A = A + 2 * (180 - A);
+				} else if (A > 180 && A < 270) {
+					A = A - 2 * (A - 180);
+				} else if (A > 270) {
+					A = A + 2 * (360 - A);
+				}
+				A = A + (int)(angle * 180/Math.PI);
+				puckDir = A * Math.PI / 180;
+				return;
 			}else {
-				System.out.println("bounce up");
+				A = A - (int)(angle * 180 / Math.PI);
+				if (A > 0 && A < 90) {
+					A = A - (2 * A);
+				} else if (A > 90 && A < 180) {
+					A = A + 2 * (180 - A);
+				} else if (A > 180 && A < 270) {
+					A = A - 2 * (A - 180);
+				} else if (A > 270) {
+					A = A + 2 * (360 - A);
+				}
+				puckDir = (A+(int)(angle * 180/Math.PI)) * Math.PI / 180;
+				return;
 			}
-		}else if(A > 90 && A < 180) {
-			
-		}else if(A > 180 && A > 270) {
-			
-		}else if(A > 270) {
-			
 		}
-//		if (0 < puckDir && puckDir < Math.PI / 2) {
-//			A = puckDir;
-//		} else if (Math.PI / 2 < puckDir && puckDir < Math.PI) {
-//			A = Math.PI - puckDir;
-//			double B = Math.PI / 2 - A;
-//			A2 = Math.PI - B - Math.atan((x1 - x2) / (y1 - y2));
-//			if (puckDir + Math.atan((x1 - x2) / (y1 - y2)) > Math.PI / 2) {
-//				puckDir = puckDir + 2 * A2;
-//			} else {
-//				puckDir = puckDir - 2 * A2;
-//			}
-//		} else if (Math.PI < puckDir && puckDir < 3 * Math.PI / 2) {
-//			A = 2 * Math.PI - puckDir;
-//		} else if (3 * Math.PI < puckDir && puckDir < 2 * Math.PI) {
-//			A = puckDir - Math.PI;
-//		}
-//		double A2 = 90 - A - Math.atan((x1 - x2)/(y1-y2));
-//		puckDir = puckDir - 2 * A2;
 	}
 }

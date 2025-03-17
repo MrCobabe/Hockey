@@ -13,7 +13,7 @@ public class Connect extends Thread {// server things
 	int numPlayers;
 	int playerNumber;
 	int port = 7777;
-	String ip = "10.121.150.33";
+	String ip = "10.121.150.35";
 	BufferedReader br;
 	PrintWriter out;
 	String playerPositionsRAW;
