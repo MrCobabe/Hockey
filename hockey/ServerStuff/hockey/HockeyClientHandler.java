@@ -15,7 +15,8 @@ public class HockeyClientHandler extends Thread {
 	ArrayList<String> playerPositions;
 	ArrayList<HockeyClientHandler> players;
 
-	public HockeyClientHandler(Socket s, ArrayList<String> playerPositions_, int playerNumber_,ArrayList<HockeyClientHandler> players_) throws IOException {
+	public HockeyClientHandler(Socket s, ArrayList<String> playerPositions_, int playerNumber_,
+			ArrayList<HockeyClientHandler> players_) throws IOException {
 		players = players_;
 		playerNumber = playerNumber_;
 		out = new PrintWriter(s.getOutputStream());
@@ -30,8 +31,9 @@ public class HockeyClientHandler extends Thread {
 		out.println("players:" + a);
 		out.flush();
 	}
+
 	public void sendAll(String a) {
-		for(HockeyClientHandler b : players) {
+		for (HockeyClientHandler b : players) {
 			b.out.println(a);
 			b.out.flush();
 		}
@@ -46,7 +48,19 @@ public class HockeyClientHandler extends Thread {
 					if (a.contains("puck")) {
 //						System.out.println("PUNK FROM SERVER SIDE " + a);
 						sendAll(a);
-					} else {
+					}
+					else if (a.contains("collision")) {
+						players.get(0).out.println(a);
+						players.get(0).out.flush();
+					}else if(a.contains("goodbye")) {
+						for(HockeyClientHandler b : players) {
+							b.out.println(playerNumber + "hasLeft");
+							b.out.flush();
+						}
+						out.close();
+						in.close();
+					}
+					else {
 						playerPositions.set(playerNumber, a);
 //						System.out.println(playerPositions);
 						out.println(playerPositions.toString());

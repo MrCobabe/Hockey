@@ -13,11 +13,12 @@ public class Connect extends Thread {// server things
 	int numPlayers;
 	int playerNumber;
 	int port = 7777;
-	String ip = "10.121.150.35";
+	String ip = "10.121.150.78";
 	BufferedReader br;
 	PrintWriter out;
 	String playerPositionsRAW;
 	String puckPosition;
+	String redirect = "";//for server
 
 	public Connect() throws UnknownHostException, IOException {
 		Socket s = new Socket(ip, port);
@@ -42,7 +43,12 @@ public class Connect extends Thread {// server things
 						numPlayers = Integer.valueOf(a.split(":")[1]);
 					}else if(a.contains("puck")) {
 						puckPosition = a.substring(4);
-					}else {
+					}
+					else if(a.contains("collision")) {
+						redirect = a;//everyone leave this blank
+						System.out.println("connect : collision");
+					}
+					else {
 						playerPositionsRAW = a;
 //						System.out.println(a);
 					}
@@ -61,6 +67,16 @@ public class Connect extends Thread {// server things
 	//restricted ↓
 	public void sendPuckPosition(double[] puck) {//server only
 		out.println("puck" + (int)puck[0] + "," + (int)puck[1]);
+		out.flush();
+	}//end server only ↑
+	//public access ↓
+	public void sendCollision(int a, double speed) {
+		out.println("collision," + a + "," + speed);
+		out.flush();
+	}
+	
+	public void leave() {
+		out.println("goodbye");
 		out.flush();
 	}
 	

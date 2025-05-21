@@ -14,7 +14,7 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 
 public class HockeyPanel extends JPanel {
-	int sides = 12;// start position
+	int sides = 50;// start position
 	TableShape shape;
 	Polygon poly;
 	int sideLength;
@@ -27,7 +27,7 @@ public class HockeyPanel extends JPanel {
 	double mouseSpeed;
 	double[] tom = { 350, 350 }; // actually the puck; Two0 Optimistic Moms
 	double puckDir = Math.PI * 7 / 8;// just me knot you
-	int puckSpeed = 1;
+	int puckSpeed = 6;
 
 	public HockeyPanel(Connect connect) {// constructor!!!
 		this.connect = connect;
@@ -62,11 +62,18 @@ public class HockeyPanel extends JPanel {
 			}
 			connect.sendPosition(puckX, puckY);
 			// server only ↓
-			if (connect.numPlayers > 2) {
+			if (connect.numPlayers > 0) {
 				tom[0] = (Math.cos(puckDir) * puckSpeed + tom[0]);
 				tom[1] = (tom[1] + Math.sin(puckDir) * puckSpeed);
 			}
 			connect.sendPuckPosition(tom);
+			if(!connect.redirect.equals("")) {
+				double dir = Integer.valueOf(connect.redirect.split(",")[1]) * Math.PI/180;
+				puckDir = dir;
+				tom[0] = tom[0] + puckSpeed * Math.cos(dir) * 5;
+				tom[1] = tom[1] + puckSpeed * Math.sin(dir) * 5;
+				connect.redirect = "";
+			}
 			// server only ↑
 			if (connect.puckPosition != null) {
 				String[] tomSplit = connect.puckPosition.split(",");
@@ -79,6 +86,7 @@ public class HockeyPanel extends JPanel {
 					redirect(xPoint, yPoint);
 				}
 			}
+			this.checkCollision();
 			repaint();
 		}); // ends timer comment because it's helpful
 		timer.start();
@@ -99,7 +107,7 @@ public class HockeyPanel extends JPanel {
 					int a = e.getX();
 					int b = e.getY();
 					mouseSpeed = Math.sqrt((puckX - a) * (puckX - a) + (puckY - b) * (puckY - b));
-					System.out.println(mouseSpeed);
+//					System.out.println(mouseSpeed);
 					puckX = a;
 					puckY = b;
 					setCursor(c);
@@ -181,6 +189,19 @@ public class HockeyPanel extends JPanel {
 				in = true;
 			}
 		}
+		
+		return in;
+	}
+	public boolean checkGoal(int x, int y) {
+		boolean in = false;
+		if(y + puckSize > shape.wise[0]) {
+			if(x > shape.exes[1]) {
+				if( x < shape.exes[0]) {
+					System.out.println("backboard");
+				}
+			}
+		}
+		
 		return in;
 	}
 
@@ -196,7 +217,11 @@ public class HockeyPanel extends JPanel {
 
 	public void checkCollision() {
 		int[] center = { puckX + puckSize / 2, puckY + puckSize / 2 };
-		int[] puckCenter = { (int) (tom[0] + puckSize / 2), (int) (tom[1] + puckSize / 2) };
+		int[] puckCenter = { (int) (tom[0] + puckSize / 2)-350, (int) (tom[1] + puckSize / 2) -350};
+		puckCenter = rotatePerson(puckCenter[0],puckCenter[1],0);
+		puckCenter[0] = puckCenter[0] + 350 + puckSize/2;//I think this is what fixed it
+		puckCenter[1] = puckCenter[1] + 350 + puckSize /2;
+		
 		for (int a = 0; a < 360; a = a + 15) {
 			double rad = a * Math.PI / 180;
 			double[] checkPoint = { puckSize / 2 * Math.cos(rad) + center[0],
@@ -205,7 +230,8 @@ public class HockeyPanel extends JPanel {
 			double dy = checkPoint[1] - puckCenter[1];
 			double distance = Math.sqrt(dx * dx + dy * dy);
 			if(distance < puckSize / 2) {
-				System.out.println("Collision " + a);
+//				System.out.println("Collision:" + a);
+				connect.sendCollision(a, mouseSpeed);
 			}
 			
 		}
@@ -217,6 +243,16 @@ public class HockeyPanel extends JPanel {
 		int x2 = 0;
 		int y1 = 0;
 		int y2 = 0;
+		//check bounce off table
+		double tempdx = (tom[0] - 350);
+		double tempdy = (tom[1] - 350);
+		if(Math.sqrt(tempdy * tempdy + tempdx * tempdx) > 360) {
+			tom[0] = 350; 
+			tom[1] = 350;
+			return;
+		}
+		
+		
 		for (int a = 0; a < shape.exes.length - 1; a++) {
 //			System.out.println("shape exes: " + shape.exes[a] + "," + shape.exes[a+1]);
 //			System.out.println("puck x: " + pointX);
@@ -248,8 +284,8 @@ public class HockeyPanel extends JPanel {
 		}
 //		System.out.println(A + " PRINTING A");
 
-		System.out.println("exes: " + x1 + "," + x2);
-		System.out.println("wise: " + y1 + "," + y2);
+//		System.out.println("exes: " + x1 + "," + x2);
+//		System.out.println("wise: " + y1 + "," + y2);
 		if (x1 - x2 == 0 || y1 - y2 == 0) {
 			if (x1 - x2 == 0) {
 				if (A > 0 && A < 90) {
@@ -283,9 +319,9 @@ public class HockeyPanel extends JPanel {
 			double angle = Math.atan2(dy, dx);
 //			System.out.println("DY: " + dy + " DX: " + dx);
 			if (dy / dx > 0) {
-				System.out.println("old A: " + A);
+//				System.out.println("old A: " + A);
 				A = A - (int) (angle * 180 / Math.PI);
-				System.out.println("A Rotated: " + A);
+//				System.out.println("A Rotated: " + A);
 				if (A > 0 && A < 90) {
 					A = A - (2 * A);
 				} else if (A > 90 && A < 180) {
